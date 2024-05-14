@@ -1,6 +1,15 @@
 import pickle
 import os
-from tkinter import Tk, filedialog
+import tkinter as tk
+from tkinter import filedialog
+
+def choose_file(start_path):
+    root = tk.Tk()
+    root.withdraw()  # Hide the main window
+
+    file_path = filedialog.askopenfilename(initialdir=start_path, title="Select a video file")
+
+    return file_path
 
 
 # Get the user's home directory
@@ -8,10 +17,7 @@ home_dir = os.path.expanduser("~")
 # Define the start path
 start_path = os.path.join(home_dir, 'OneDrive', 'Whiskertracking', 'Videos')
 # Prompt the user to select a folder
-root = Tk()
-root.withdraw()  # Hide the main window
 start_path = filedialog.askdirectory(initialdir=start_path, title='Select Folder')
-root.destroy()  # Close the tkinter window
 
 # Access file names in the selected folder
 if start_path:
@@ -30,5 +36,10 @@ if len(pickle_files) == 1:
     with open(pickle_file_path, 'rb') as f:
         data = pickle.load(f)
         print(data)  # Print the loaded data as needed
-else:
-    print("Error: No or multiple pickle files found in the directory.")
+else: # if more pickle files are in directory choose individually
+    pickle_file_path = choose_file(start_path)
+    # Load the pickle file
+    with open(pickle_file_path, 'rb') as f:
+        data = pickle.load(f)
+        print(data)  # Print the loaded data as needed
+    
