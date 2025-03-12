@@ -3,7 +3,7 @@ dir = 'Z:/Animals/Test_files/';
 
 %%
 % read wavesurfer file
-filename = '#Test_cam_1_0001.h5';
+filename = '#Test_cam_5_0001.h5';
 
 data = ws.loadDataFile(fullfile(dir,filename)); %using wavesurfer function
 
@@ -21,9 +21,14 @@ numSamples = length(pulse_signal);
 % get trigger timestamps
 threshold = mean(pulse_signal);
 risingEdges = find(diff(pulse_signal > threshold) == 1); % find rising edges
-timestamps = (risingEdges/Fs)/60; %in minutes
+t_ts = (risingEdges/Fs)/60; %in minutes
 
 %%
-videoname = '#Test_cam_1.avi';
+videoname = '#Test_cam_5.avi';
 vidObj = VideoReader(fullfile(dir,videoname));
 numFrames = vidObj.NumFrames;
+
+% load timestamps
+v_ts = load(fullfile(dir,'#Test_cam_5_video_timestamps.txt'));
+time_diff = diff(v_ts);
+cumulative_time = ([0; cumsum(time_diff)])/60;
