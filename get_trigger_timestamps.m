@@ -59,7 +59,7 @@ for i = 1:length(trigger_ts)
         idx_diff(i:end) = 1; % remaining triggers have no video match
         break;
     end
-    if abs(trigger_ts(i) - cumulative_time(j)) < 5e-4 % 3-frame tolerance
+    if abs(trigger_ts(i) - cumulative_time(j)) < 0.005
         % Match
         idx_diff(i) = 0;
         j = j + 1;
