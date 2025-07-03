@@ -1,23 +1,25 @@
 % 
-dir = 'Z:/Animals/Test_files/250702';
+startdir = 'Z:/Animals';
+startdir = uigetdir(startdir,'Select folder');
 
 %% from wavesurfer Pulse Train
 % read wavesurfer file
-filename = 'hab_test_2_0001.h5';
+ws_file = dir(fullfile(startdir, '*.h5'));
+ws_fname = ws_file(1).name;
 
-data = ws.loadDataFile(fullfile(dir,filename)); %using wavesurfer function
+ws_data = ws.loadDataFile(fullfile(startdir, ws_fname)); %using wavesurfer function
 
 % get sampling rate
-Fs = data.header.AcquisitionSampleRate;
+Fs = ws_data.header.AcquisitionSampleRate;
 
 % values in 'ans.sweep_001.analogScans (channels in columns)
 %numSamples = size(data.sweep_0001.analogScans, 1);
 %timeVector = (0:numSamples-1) / Fs;
 
-chanFlag = find(contains(data.header.AIChannelNames, 'Cam'));
+chanFlag = find(contains(ws_data.header.AIChannelNames, 'Cam'));
 for i = 1:length(chanFlag)
-    chanIdx = chanFlag(i);
-    pulse_signal = data.sweep_0001.analogScans(:, chanIdx);
+    chanIDX = chanFlag(i);
+    pulse_signal = ws_data.sweep_0001.analogScans(:, chanIDX);
     %numSamples(chanIdx) = length(pulse_signal);
 
     % get trigger timestamps
@@ -28,25 +30,30 @@ for i = 1:length(chanFlag)
 end
 
 %% from video file (this takes long!!!)
-videoname = '#Test_hab_2.mp4';
-vidObj = VideoReader(fullfile(dir,videoname));
+v_files = dir(fullfile(startdir, '*.mp4'));
+v_name = v_files(1).name;
+vidObj = VideoReader(fullfile(startdir,v_name));
 numFrames = vidObj.NumFrames;
 
 %% from timestamps.txt file
 % load timestamps
-v_ts = load(fullfile(dir,'#Test_hab_2_video_timestamps.txt'));
+txt_files = dir(fullfile(startdir, '*.txt'));
+v_ts = load(fullfile(startdir,txt_files(1).name));
 time_diff = diff(v_ts);
-cumulative_time = ([0; cumsum(time_diff)])/60;
+cumulative_time = ([(t_ts{1,1}(1)*60); cumsum(time_diff)])/60; %in minutes
 
 %% compare timestamps
-trigg_diff = diff(t_ts{1,1});
+figure
+plot(time_diff); hold on;
 
-figure;
-plot(trigg_diff, 'b.-'); hold on;
-plot(time_diff, 'r.-');
-legend('Trigger intervals', 'Video intervals');
+for wsIDX = 1:length(t_ts)
+    trigg_diff = diff(t_ts{1,wsIDX}*60);
+    plot(trigg_diff);
+end
+
+legend('Video intervals', 'Trigger intervals', 'Feedback intervals');
 xlabel('Frame index');
-ylabel('Time between frames');
+ylabel('Time between frames[s]');
 title('Frame interval comparison');
 
 %% find missing frames
@@ -59,7 +66,7 @@ for i = 1:length(trigger_ts)
         idx_diff(i:end) = 1; % remaining triggers have no video match
         break;
     end
-    if abs(trigger_ts(i) - cumulative_time(j)) < 0.005
+    if abs(trigger_ts(i) - cumulative_time(j)) < 5e-4 %tolerance of three frames
         % Match
         idx_diff(i) = 0;
         j = j + 1;
@@ -71,5 +78,6 @@ end
 
 % Show missing frame indices
 missingFrames = find(idx_diff == 1);
+fprintf('You are missing % frames',sum(missingFrames))
 disp('Missing frame indices:');
 disp(missingFrames);
