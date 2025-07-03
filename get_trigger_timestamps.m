@@ -1,4 +1,5 @@
-% 
+%%
+% define start path
 startdir = 'Z:/Animals';
 startdir = uigetdir(startdir,'Select folder');
 
@@ -12,15 +13,10 @@ ws_data = ws.loadDataFile(fullfile(startdir, ws_fname)); %using wavesurfer funct
 % get sampling rate
 Fs = ws_data.header.AcquisitionSampleRate;
 
-% values in 'ans.sweep_001.analogScans (channels in columns)
-%numSamples = size(data.sweep_0001.analogScans, 1);
-%timeVector = (0:numSamples-1) / Fs;
-
 chanFlag = find(contains(ws_data.header.AIChannelNames, 'Cam'));
 for i = 1:length(chanFlag)
     chanIDX = chanFlag(i);
     pulse_signal = ws_data.sweep_0001.analogScans(:, chanIDX);
-    %numSamples(chanIdx) = length(pulse_signal);
 
     % get trigger timestamps
     threshold = mean(pulse_signal);
@@ -43,7 +39,7 @@ time_diff = diff(v_ts);
 cumulative_time = ([(t_ts{1,1}(1)*60); cumsum(time_diff)])/60; %in minutes
 
 %% compare timestamps
-figure
+fig1 = figure;
 plot(time_diff); hold on;
 
 for wsIDX = 1:length(t_ts)
@@ -78,6 +74,12 @@ end
 
 % Show missing frame indices
 missingFrames = find(idx_diff == 1);
-fprintf('You are missing % frames',sum(missingFrames))
-disp('Missing frame indices:');
+fprintf('You are missing %d frames\n', length(trigger_ts)-numFrames)
+disp('Potential missing frame indices:');
 disp(missingFrames);
+
+%% save figure
+fig_name = fullfile(startdir, 'frame_interval_comparison.png');
+%saveas(fig1, fig_name)
+exportgraphics(fig1, fig_name)
+
