@@ -1,4 +1,6 @@
 %%
+%clear all
+
 % define start path
 startdir = 'Z:/Animals';
 startdir = uigetdir(startdir,'Select folder');
@@ -35,8 +37,8 @@ numFrames = vidObj.NumFrames;
 % load timestamps
 txt_files = dir(fullfile(startdir, '*.txt'));
 v_ts = load(fullfile(startdir,txt_files(1).name));
-time_diff = diff(v_ts);
-cumulative_time = ([(t_ts{1,1}(1)*60); cumsum(time_diff)])/60; %in minutes
+time_diff = diff(v_ts)/1e9;
+cumulative_time = [(t_ts{1,2}(1)*60); cumsum(time_diff)]/60; %in minutes
 
 %% compare timestamps
 fig1 = figure;
@@ -49,20 +51,20 @@ end
 
 legend('Video intervals', 'Trigger intervals', 'Feedback intervals');
 xlabel('Frame index');
-ylabel('Time between frames[s]');
+ylabel('Time between frames [ms]');
 title('Frame interval comparison');
 
 %% find missing frames
-idx_diff = zeros(length(t_ts{1,1}), 1); % 0 if match, 1 if missing
+idx_diff = zeros(length(t_ts{1,2}), 1); % 0 if match, 1 if missing
 j = 1; % index for video timestamps
-trigger_ts = t_ts{1,1};
+trigger_ts = t_ts{1,2};
 
 for i = 1:length(trigger_ts)
     if j > length(cumulative_time)
         idx_diff(i:end) = 1; % remaining triggers have no video match
         break;
     end
-    if abs(trigger_ts(i) - cumulative_time(j)) < 5e-4 %tolerance of three frames
+    if abs(trigger_ts(i) - cumulative_time(j)) < 0.00017 %tolerance of two frames
         % Match
         idx_diff(i) = 0;
         j = j + 1;
