@@ -84,4 +84,3 @@ disp(missingFrames);
 fig_name = fullfile(startdir, 'frame_interval_comparison.png');
 %saveas(fig1, fig_name)
 exportgraphics(fig1, fig_name)
-
